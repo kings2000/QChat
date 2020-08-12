@@ -2,8 +2,14 @@ import React from 'react'
 import { View, StyleSheet, Text } from 'react-native';
 import MessageBubble from './MessageBubble';
 import UserIcon from './UserIcon';
+import { TouchableHighlight } from 'react-native-gesture-handler';
 
 const ChatTile = ({isMine, chat, showFace = true}) => {
+
+    const handleLongPress = () => {
+        console.log(chat.title);
+    }
+
     return (
         <View style={styles.tile}>
             {!isMine && <Text style={{fontSize:12}} >King Gp</Text>}
@@ -12,9 +18,11 @@ const ChatTile = ({isMine, chat, showFace = true}) => {
                 {!isMine && <UserIcon/>}
                 <View style={{width:20}}/>
                 <View style={styles.subView}>
-                    <View>
-                        <MessageBubble chat={chat}/>
-                    </View>
+                    <TouchableHighlight onPress={() => {console.log("200")}}>
+                        <View>
+                            <MessageBubble onLongPress={() => {handleLongPress()}} chat={chat}/>
+                        </View>
+                    </TouchableHighlight>
                     <View style={{height:5}}/>
                     <Text style={[{fontSize:10}, isMine?styles.leftTile:styles.rightTile]}>Time since arival</Text>
                  </View>

@@ -1,39 +1,40 @@
 
 import React,{useState} from 'react';
-import { Text, View , StyleSheet, Image, TouchableHighlight} from 'react-native';
+import { Text, View , StyleSheet, Image, TouchableHighlight, ImageBackground} from 'react-native';
 import Icon from "react-native-vector-icons/MaterialIcons";
-import ImageViewerScreen from '../screens/ImageViewerScreen';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 
-function MessageBubble({chat, ...others}){
 
-    const [imageUri, setImageUri] = useState(true);
+function MessageBubble({onLongPress, chat, ...others}){
+
     const isImage = () => chat.messageType == 'image'
-    
-    
     if(isImage()){
+        
         const photo = chat.photoUrl != "";
+        const gifImage = () => chat.imageType == 'gif';
         return(
-            <TouchableHighlight underlayColor="transparent" onPress={() => {global.showImage(chat.photoUrl)}}>
-                <View style={[chat.isMine? styles.bubbleRight : styles.bubbleLeft, others, {padding: 2}]}>
-                { photo && 
-                    <Image source ={{uri:"data:image/jpeg;base64,"+chat.photoUrl}} style = {{ width: 200, height: 200 }}/>
-                }
-                {!photo && 
-                    <Icon name="image" size={100}/>
-                }
-                </View>
+            <TouchableHighlight underlayColor="transparent" onLongPress={onLongPress}  onPress={() => {global.showImage(chat.photoUrl)}}>
+            <View style={[chat.isMine? styles.bubbleRight : styles.bubbleLeft, others, {padding: 2}]}>
+            {photo &&
+                <ImageBackground source ={{uri:chat.photoUrl}} style = {{ width: 200, height: 200 }}/>
+
+            }
+            {!photo && 
+                <Icon name="image" size={100}/>
+            }
+            </View>
             </TouchableHighlight>
         );
-
+        
+        
     }else{
         return(
-            <View style={[chat.isMine? styles.bubbleRight : styles.bubbleLeft, others]}>
+            <TouchableHighlight underlayColor="transparent" onLongPress={onLongPress}>
+                <View style={[chat.isMine? styles.bubbleRight : styles.bubbleLeft, others]}>
                 
-                <Text style={styles.text}>{chat.title}</Text>
-            </View>
-    
+                    <Text style={styles.text}>{chat.title}</Text>
+                </View>
+            </TouchableHighlight>
         );
     }
 }

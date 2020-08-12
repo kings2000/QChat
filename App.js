@@ -24,8 +24,7 @@ export default function App(){
 
   const [visible, setIsVisible] = useState(false);
   const [sourceImage, setSourceImage] = useState(false);
-  global.showImage = function(image){
-    console.log(image);
+  global.showImage = function(image){;
     setSourceImage(image);
     setIsVisible(true);
   }

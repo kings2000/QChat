@@ -62,7 +62,6 @@ function AppInput({ onSend ,keyboardActiveState ,...others}) {
                 onFocus={() => {[setEmojiPanelState("close"),setMediaCatState('close') ]}}
                 value={chatValue}
                 onChangeText={text => setValue(text)}
-                placeholderTextColor="white" 
                 placeholder="Enter Message "
                 placeholderTextColor={"black"}
                 textAlignVertical={"bottom"}
@@ -109,15 +108,16 @@ const styles = StyleSheet.create({
         justifyContent:"center",
         alignItems:"center",
         paddingHorizontal: 10,
+        paddingVertical:5,
         height:50,
     },
     text:{
         color: "black",
         flex: 1,
         marginEnd:10,
-        fontSize:13,
+        fontSize:17,
         alignSelf:"center",
-        height: 35,
+        
         backgroundColor:"white",
         borderRadius:10,
 

@@ -1,5 +1,5 @@
 import React,{Component, useRef} from 'react';
-import { SafeAreaView,View, Dimensions, Text,KeyboardAvoidingView, Keyboard ,StyleSheet, TouchableWithoutFeedback, FlatList, Animated } from 'react-native';
+import { SafeAreaView,View, Dimensions, Text,KeyboardAvoidingView, Keyboard ,StyleSheet, TouchableWithoutFeedback, FlatList, Animated, Alert } from 'react-native';
 
 import * as RNFS from 'react-native-fs';
 import AppHeader from '../components/AppHeader'
@@ -7,7 +7,7 @@ import AppInput from '../components/AppInput'
 import ChatTile from '../components/ChatTile'
 import ChatChannels from './ChatChannels';
 import ImagePicker from 'react-native-image-picker';
-import ViewOverflow from 'react-native-view-overflow';
+import axios from 'axios' 
 
 const isPotriat = () => {
     const dim = Dimensions.get('window');
@@ -20,11 +20,12 @@ const options = {
   storageOptions: {
     skipBackup: true,
     path: 'images',
+    
   },
-  maxWidth: 500,
-  maxHeight: 500,
-  quality: 0.5
+  
 };
+
+
 
 export class ChatScreen extends Component {
 
@@ -37,6 +38,7 @@ export class ChatScreen extends Component {
             chatViewOffsetX: new Animated.Value(0),
             channelViewOffsetX: new Animated.Value(-250),
             chatChannelState:'close',
+
             chats : [
                 {
                   id: "1",
@@ -147,8 +149,9 @@ export class ChatScreen extends Component {
                     senderid: "",
                     receiverId:"",
                     timestamp:"",
-                    photoUrl:""
-                  },
+                    photoUrl:"",
+                    imageType:"image"
+                  }
               ]
          }
         Dimensions.addEventListener('change', () =>{
@@ -218,6 +221,7 @@ export class ChatScreen extends Component {
         });
 
       }else{
+
         ImagePicker.launchImageLibrary(options, (response) => {
           
           if (response.didCancel) {
@@ -227,9 +231,21 @@ export class ChatScreen extends Component {
           } else if (response.customButton) {
             console.log('User tapped custom button: ', response.customButton);
           } else {
-            const source = response.uri;
-            const data = response.data;
-            global.chatScreenRef.addImageChat(data,source, false);
+            const uri = response.uri;
+            const type = response.type;
+            const name = response.fileName;
+
+            const source = {
+              uri,
+              type,
+              name
+            }
+            
+            global.chatScreenRef.cloudinaryUpload(response);
+
+            //const data = response.data;
+            //console.log(response);
+            //global.chatScreenRef.addImageChat(data,source, false);
           }
         });
 
@@ -256,16 +272,16 @@ export class ChatScreen extends Component {
           chat : _data
       });
       this.refs.chatListRef.scrollToEnd();
-  }
+    }
 
-    addImageChat =(data,imageFilePath, _isMine) =>{
+    addImageChat =(url, _isMine) =>{
 
         var count = this.state.chats.length + 1;
         //uri: Platform.OS === "android" ? photo.uri : photo.uri.replace("file://", "")
         this.state.chats.push({
           id:count.toString(),
           title:[''],
-          photoUrl:data , 
+          photoUrl:url , 
           isMine:_isMine,
           messageType:'image',
           senderid: "",
@@ -279,35 +295,90 @@ export class ChatScreen extends Component {
         });
         this.refs.chatListRef.scrollToEnd();
         
-        RNFS.exists(imageFilePath)
-        .then( (result) => {
-            if(result){
-              return RNFS.unlink(imageFilePath)
-                .then(() => {
-                  console.log('FILE DELETED');
-                  RNFS.scanFile(imageFilePath)
-                  .then(() => {
-                    console.log('scanned');
-                  })
-                  .catch(err => {
-                    console.log(err);
-                  });
-                })
-                // `unlink` will throw an error, if the item to unlink does not exist
-                .catch((err) => {
-                  console.log(err.message);
-                });
-            }
+        // RNFS.exists(imageFilePath)
+        // .then( (result) => {
+        //     if(result){
+        //       return RNFS.unlink(imageFilePath)
+        //         .then(() => {
+        //           console.log('FILE DELETED');
+        //           RNFS.scanFile(imageFilePath)
+        //           .then(() => {
+        //             console.log('scanned');
+        //           })
+        //           .catch(err => {
+        //             console.log(err);
+        //           });
+        //         })
+        //         // `unlink` will throw an error, if the item to unlink does not exist
+        //         .catch((err) => {
+        //           console.log(err.message);
+        //         });
+        //     }
 
+        //   })
+        //   .catch((err) => {
+        //     console.log(err.message);
+        //   });
+    }
+
+    cloudinaryUpload = (photo) => {
+
+      // let base64Img = `data:image/jpg;base64,${photo.data}`;
+      
+      // const data = new FormData()
+      // data.append('file', base64Img)
+      // data.append('upload_preset', 'gpcodes')
+      // data.append("cloud_name", "ninja3k")
+
+      // axios({
+        
+      //   method: 'POST',
+      //   url: "https://api.cloudinary.com/v1_1/ninja3k/image/upload",
+      //   data: data
+      // }).then(function (response) {
+        
+      //   const imageUrl = response.data.secure_url;
+      //   global.chatScreenRef.addImageChat(imageUrl, true);
+      // })
+      // .catch(function (error) {
+      //   console.log(error);
+      // });
+
+      RNFS.readFile(photo.path, 'base64').then(res => {
+
+          let base64Img = `data:${photo.type};base64,${photo.data}`;
+          //console.log(photo);
+          const data = new FormData()
+          data.append('file', base64Img)
+          data.append('upload_preset', 'gpcodes')
+          data.append("cloud_name", "ninja3k")
+
+          axios({
+          
+            method: 'POST',
+            url: "https://api.cloudinary.com/v1_1/ninja3k/image/upload",
+            data: data
+          }).then(function (response) {
+            
+            const imageUrl = response.data.secure_url;
+            global.chatScreenRef.addImageChat(imageUrl, true);
+            //console.log()
           })
-          .catch((err) => {
-            console.log(err.message);
+          .catch(function (error) {
+            console.log(error);
           });
-        }
 
-        renderItem = ({ item }) => (
-            <ChatTile isMine={item.isMine} chat={item}/>
-        )
+      }).catch(err => {
+  
+        console.log(err.message, err.code);
+      });
+
+    
+    }
+
+    renderItem = ({ item }) => (
+        <ChatTile isMine={item.isMine} chat={item}/>
+    )
 
     render() {
         return (
