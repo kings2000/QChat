@@ -18,7 +18,7 @@ const ChatTile = ({isMine, chat, showFace = true}) => {
                 {!isMine && <UserIcon/>}
                 <View style={{width:20}}/>
                 <View style={styles.subView}>
-                    <TouchableHighlight onPress={() => {console.log("200")}}>
+                    <TouchableHighlight onPress={() => {}}>
                         <View>
                             <MessageBubble onLongPress={() => {handleLongPress()}} chat={chat}/>
                         </View>

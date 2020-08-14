@@ -8,24 +8,13 @@ import ChatTile from '../components/ChatTile'
 import ChatChannels from './ChatChannels';
 import ImagePicker from 'react-native-image-picker';
 import axios from 'axios' 
+import { FileManager } from '../Modals/FileManager';
+import { ContextMenu } from '../components/ContextMenu';
 
 const isPotriat = () => {
     const dim = Dimensions.get('window');
     return dim.height >= dim.width;
 }
-
-const options = {
-  title: 'Media',
-  customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
-  storageOptions: {
-    skipBackup: true,
-    path: 'images',
-    
-  },
-  
-};
-
-
 
 export class ChatScreen extends Component {
 
@@ -175,6 +164,7 @@ export class ChatScreen extends Component {
         
         //activates the image picker action triggerd from MediaCategory
         global.ActivateImagePicker = this.ActivateImagePicker;
+        
     }
     
 
@@ -184,6 +174,9 @@ export class ChatScreen extends Component {
       Keyboard.removeListener('keyboardDidHide');
       this.state.channelViewOffsetX.removeAllListeners();
     }
+
+
+
     openChatChannel() {
         var currentState = this.state.chatChannelState == 'open' ? 'close' : 'open';
         var toValue = currentState == 'open'? 250 : 0;
@@ -197,59 +190,19 @@ export class ChatScreen extends Component {
         console.log(this.state.channelViewOffsetX._value);
     }
     
-    
-
-    ActivateImagePicker(state){
+    uploadFile = (response) => {
+      //TODO: handle error message
+      new FileManager().UploadImage(response).then(url => console.log(url));
       
+    };
+    
+     ActivateImagePicker (state) {
+      
+        new FileManager().GetImageFromLib(state).then(response => {
+          console.log(response);
+        }).catch(err => console.log(err));
 
-      if(state == 'cam'){
-
-        ImagePicker.launchCamera(options, (response) => {
-          
-          if (response.didCancel) {
-            console.log('User cancelled image picker');
-          } else if (response.error) {
-            console.log('ImagePicker Error: ', response.error);
-          } else if (response.customButton) {
-            console.log('User tapped custom button: ', response.customButton);
-          } else {
-            const source = response.uri;
-            const data = response.data;
-            global.chatScreenRef.addImageChat(data,source, false);
-          }
-
-        });
-
-      }else{
-
-        ImagePicker.launchImageLibrary(options, (response) => {
-          
-          if (response.didCancel) {
-            console.log('User cancelled image picker');
-          } else if (response.error) {
-            console.log('ImagePicker Error: ', response.error);
-          } else if (response.customButton) {
-            console.log('User tapped custom button: ', response.customButton);
-          } else {
-            const uri = response.uri;
-            const type = response.type;
-            const name = response.fileName;
-
-            const source = {
-              uri,
-              type,
-              name
-            }
-            
-            global.chatScreenRef.cloudinaryUpload(response);
-
-            //const data = response.data;
-            //console.log(response);
-            //global.chatScreenRef.addImageChat(data,source, false);
-          }
-        });
-
-      }
+      
     }
 
     addTextChat =(_chat, _isMine) =>{
@@ -321,60 +274,7 @@ export class ChatScreen extends Component {
         //   });
     }
 
-    cloudinaryUpload = (photo) => {
-
-      // let base64Img = `data:image/jpg;base64,${photo.data}`;
-      
-      // const data = new FormData()
-      // data.append('file', base64Img)
-      // data.append('upload_preset', 'gpcodes')
-      // data.append("cloud_name", "ninja3k")
-
-      // axios({
-        
-      //   method: 'POST',
-      //   url: "https://api.cloudinary.com/v1_1/ninja3k/image/upload",
-      //   data: data
-      // }).then(function (response) {
-        
-      //   const imageUrl = response.data.secure_url;
-      //   global.chatScreenRef.addImageChat(imageUrl, true);
-      // })
-      // .catch(function (error) {
-      //   console.log(error);
-      // });
-
-      RNFS.readFile(photo.path, 'base64').then(res => {
-
-          let base64Img = `data:${photo.type};base64,${photo.data}`;
-          //console.log(photo);
-          const data = new FormData()
-          data.append('file', base64Img)
-          data.append('upload_preset', 'gpcodes')
-          data.append("cloud_name", "ninja3k")
-
-          axios({
-          
-            method: 'POST',
-            url: "https://api.cloudinary.com/v1_1/ninja3k/image/upload",
-            data: data
-          }).then(function (response) {
-            
-            const imageUrl = response.data.secure_url;
-            global.chatScreenRef.addImageChat(imageUrl, true);
-            //console.log()
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-
-      }).catch(err => {
-  
-        console.log(err.message, err.code);
-      });
-
     
-    }
 
     renderItem = ({ item }) => (
         <ChatTile isMine={item.isMine} chat={item}/>
@@ -409,10 +309,10 @@ export class ChatScreen extends Component {
                         
                     </View>
                 </TouchableWithoutFeedback>
-                {/* <ViewOverflow>
-                  <View style={{width:300, height:300}}></View>
-                </ViewOverflow> */}
                 </Animated.View>
+                <View style={{position:"absolute", height:"100%", width:"100%"}}>
+                    <ContextMenu/>
+                </View>
             </KeyboardAvoidingView>
             
 
